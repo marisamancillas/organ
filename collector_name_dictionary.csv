@@ -1,0 +1,223 @@
+keys,values
+.missing,.na
+.regex .*hayden.*,ada hayden
+.regex ^a.*hill.*,a. hill
+.regex .*mulf.*,a. isabel mulford
+.regex ^a.*l.*hersh.*|^hershey.*l.*|^hershey$,arthur leroy hershey
+.regex .*a. lee.*,a. lee
+.regex .*a.*m.*sanch.*|.*sanch.*a.*m.*,a. m. sanchez
+.regex ^a.*ledi.*|^led.*a.*r.*,a. r. leding
+.regex ^a.*hitch.*,a. s. hitchcock
+.regex .*warf.*,a. warford
+.regex .*zimmerman.*,alan d. zimmerman
+.regex .*jaha.*,ali jafary jahaghy
+.regex ^a.*sander*,andrew c. sanders
+.regex ^a.*hinc.*|^hinc.*a.*,arthur l. hinckley
+.regex ^a.*nelson.*,aven nelson
+.regex ^b.*weber.*|^web.*b$,bruce e. weber
+.regex .*gumi.*,b. j. guminski
+.regex .*koon.*,b. koontz
+.regex .*benjamin.*ev.*,benjamin l. everitt
+.regex .*prado.*,bernardo prado
+.regex .*kennedy.*,c. a. kennedy
+.regex ^baker.*c.*|^c.*baker.*,c. f. baker
+.regex .*barll.*|.*c.t.*bart.*|^bart.*ct,c. t. bartlett
+.regex .*forsling.*,c. l. forsling
+.regex .*zum.*,c. w. zumwalt
+.regex .*carlot.*,carlotta emslie
+.regex ^c.*suther.*|^suther.*c.*,carol sutherland
+.regex ^c.*parry.*|^parry.*c.*,charles c. parry
+.regex ^c.*hitch.*,charles l. hitchcock
+.regex .*^c.*wright.*|.*^wright.*c.*,charles wright
+.regex .*cheryl.*mc.*,cheryl mcconnell
+.regex .*chest.*,chester m. rowell
+.regex .*stubb.*,chris stubben
+.regex .*christian.*k.*,christian knowlton
+.regex ^smith.*c.*s.*n.*,christy s. n. smith
+.regex .*claren.*,clarence l. forsling
+.regex .*craig.*c.*|^freeman.*,craig freeman
+.regex .*bearden.*,d. a. bearden
+.regex ^d.*zimm.*man.*,d. a. zimmerman
+.regex ^d.b.*dunn.*|^d.*dunn$,david baxter dunn
+.regex ^d.*b.*ward.*,d. b. ward
+.regex .*bennet.*d.*|^d.*bennet.*,d. bennett
+".regex ^d.*e.*ward.*|^d.*e.*ward.*|^e..*ward,.*|^e. ward &.*|^e. ward and.*|^ward, e.*|^e ward.*|^ward$|^ward, d.e.$",darrell eugene ward
+.regex ^d.*austin.*,d. f. austin
+.regex ^d.*g.*johnso.*|^johnson.*d.*,d. g. johnson
+.regex ^d.*g.*ward.*,d. g. ward
+.regex .*heep.*,don heep
+.regex ^d.*pinkava.*,d. j. pinkava
+".regex ^d. l. anderson.*|^anderson, dave;.*|^d.l. anderson.*|^david.*anderson.*|^anderson, d.*|^d. l anderson.*|.*d. l. anderson.*|^d. l. anderson.*|^d. l. anderson.*|^d. anderson$|^anderson, d.l.$|^anderson, david lee$|^anderson, d.*",david lee anderson
+.regex ^d.*suther.*|^suther.*d.*,d. m. sutherland
+.regex .*maupi.*,d. maupin
+.regex .*mysliw.*,d. mysliwiec
+.regex ^d.*newman.*,d. newman
+.regex .*d.o. smith.*,d. o. smith
+.regex .*correl.*,d. s. correll
+.regex .*dahlstrom.*,dahlstrom
+.regex .*david.*yo.*,david a. young
+.regex .*griff.*,david j. griffiths
+.regex .*ketz.*,david ketzner
+.regex .*dema.*,delzie demaree
+.regex .*denis.*,denis cowper
+.regex .*size.*,dennis sizemore
+.regex .*hyder.*don.*,don hyder
+.regex .*dones;.*man.*,dones; r. manshardt; k. neisess
+.regex ^c.*dono.*|^donovan.*s.*,donovan s. correll
+.regex .*fernandez.*,e. fernandez
+.regex ^gonzales.*e.*|e.*gonzales.*,e. gonzales
+.regex ^e.*bomberg.*,e. h. bomberger
+.regex .*blakley.*,e. r. blakley
+.regex ^e.*will.*|^will.*e.*w.*,e. w. williams
+.regex ^e.*anderson.*|^anderson.*e.*,edward f. anderson
+.regex .*castetter.*ed.*,edward f. castetter
+.regex .*edwin.*,edwin e. tucker
+.regex .*little.*.\\.$,elbert l. little jr.
+.regex ^e.*lehto.*,elinor lehto
+.regex .*woot.*,elmer ottis wooton
+.regex ^e.*nelson.*,enoch w. nelson
+.regex .*ulaszek.*,eric f. ulaszek
+.regex .*gross.*ii.*,f. gross iii
+.regex .*coon.*,f. m. coons
+.regex ^f.*are.*,f. n. area
+.regex .*fosberg.*,francis r. fosberg
+.regex .*fosberg.*,francis raymond fosberg
+.regex .*francis.*v.*,francisco villalpendo
+.regex .*bono.*,g. bono
+.regex ^g.*sop.*|^g.*spo.*,g. sopyn
+.regex ^gail.*patrick.*,gail r. patrick
+.regex .*goodman.*,george j. goodman
+regex .*g.*fisher.*|^l.*fisher.*|^fisher.*l.*,george l. fisher
+.regex ^g.*ferg.*,george m. ferguson
+.regex .*vasey.*,george r. vasey
+.regex .*ownb.*,gerald b. ownbey
+.regex .*gerry.*w.*,gerry d. washburn
+.regex .*gilmore.*,gilmore and dunlap
+.regex ^gordon.*,gordon d. merrick
+.regex .*guy.*ne.*,guy l. nesom
+.regex .*abercro.*|.*aberccombie.*,h. c. abercrombie
+.regex .*ripley.*,h. d. ripley
+.regex ^h.*herma.*|^herman.*h.*,hilary herman
+.regex .*dittmer.*,h. j. dittmer
+.regex ^h.*stan.*,h. stanley
+.regex ^k.*longman.*,howard c. stutz
+.regex .*schoell.*| .*jacob.*,jacob d. schoeller
+.regex ^bruce.*|^j.*bruce.*,j. h. bruce
+.regex .*schwag.*,j. j. schwagerl
+.regex ^j.*bigelow.*|^bigelow.*j.*,j. m. bigelow
+.regex .*rose.*j.*|^j.*rose.*,j. n. rose
+.regex .*toum.*,j. w. toumey
+.regex .*carter$,jack l. carter
+.regex ^j\\..*carter.*|^carter.*jack.*|^ja.*carter.*,jack l. carter
+.regex .*jame.*mart.*,james s. martin
+.regex .*jamesdvonloh.*,james von loh
+.regex .*blass.*,jimmy l. blassingame
+.regex .*medle.*,john medler
+.regex ^john milton bigelow.*,john milton bigelow
+.regex ^j.*reed.*,john r. reeder
+.regex .*john.*cass.*|^j.t.*cassa.*,john t. cassady
+.regex ^john w.*eng.*,john w. engholm
+.regex .*skagg.*,kathy e. skaggs
+.regex .*whitmore.*,karl whitmore
+.regex kay.*su.*,f. kay
+.regex .*keith.*kess.*,keith h. kessler
+.regex ^allred.*|^k. w. allred.*|^kelly.*d$|^kelly w. allred.*|^k. allred.*|^k.w. allred.*,kelly w. allred
+.regex ^ken.*val.*,kenneth a. valentine
+.regex ^k.*valen.*,kenneth a. valentine
+.regex ^heil.*kenneth.*|^kenneth.*heil.*,kenneth d. heil
+.regex ^kenn.*hei.*|^hei.*kenn.*,kenneth d. heil
+.regex ^parker.*w.*|^k.w. parker.*|^k. w. parker$|^kenneth w. parker$,kenneth w. parker
+".regex ^parker,.*|^k f parker.*|^k. f. parker.*|^k. f. parker;.*|^k.f. parker.*|^kittie f. parker.*|^k. parker.*",kittie fenley parker
+.regex .*brouill.*,l. brouillet
+.regex ^l.*hinc.*,l. c. hinckley
+.regex .*foster.*,l. foster
+.regex .*mcinto.*,laird mcintosh
+.regex ^l.*leding.*,l. r. leding
+.regex ^l.*redmo.*,l. redmore
+.regex ^l.*shaw.*|^shaw.*lu.*,l. u. shaw and e. b. brownfield
+.regex .*hoffarth.*,l. r. hoffarth
+.regex .*higg.*,larry c. higgins
+.regex .*lee.*c.*buf.*,lee c. buffington
+.regex .*stark.*,lloyd r. stark
+.regex .*yeatt.*,loraine yeatts
+.regex ^l.*anderson.*,loran c. anderson
+.regex .*lyman.*,lyman benson
+.regex .*wind.*,m. d. windham
+.regex ^m.*leding.*|^leding.*m.*,m. m. leding
+".regex ^m.*howard.*|^m.o. howard.*|^m. howard,.*",m. o. howard
+.regex .*rhod.*,m. rhodes
+.regex .*mccut.*,mandy mccutcheon
+.regex ^m.*baker.*,marc a. baker
+.regex ^m.*ferg.*|^ferg.*m.*c.*,margaret clay ferguson
+.regex ^m.*mayfie.*,mark h. mayfield
+.regex .*mark.*lei.*,mark k. leist
+.regex .*maximo.*,maximo jerez
+.regex ^m.*moor.*,michael j. moore
+.regex ^m.*mcc.*y$,michael mccrory
+.regex ^m.*royb.*,michael w. roybal
+.regex ^n.*dougl.*,n. a. douglas
+.regex .*nathan.*t.*,nathan c. taylor
+.regex .*ngart.*na.*,ngartoina dedjir
+.regex .*nic.*hansen.*,nicole k. hansen
+.regex .*gallach.*,nix
+.regex .*holmgren.*,noel h. holmgren
+.regex ^p.*hoban$|^hoban.*,p. hoban
+.regex .*pierce.*,p. pierce
+.regex ^p.*alexander.*|^alexand.*,patrick james alexander
+.regex .*paul.*b.*l.*,paul b. lister
+.regex .^p.*standley.*|^standl.*,paul carpenter standley
+.regex .*cockrell.*,r. a. cockrell
+.regex ^brozka.*,r. brozka
+.regex .*rollin.*,r. c. rollins
+.regex ^r.*sivins.*|^sivins.*,r. c. sivinski
+.regex .*dale.*,r. dale thomas
+.regex .*debu.*,r. h. debusk
+.regex ^r..*reeves.*,r. g. reeves
+.regex .*r.g. thompson.*,r. g. thompson
+.regex .*hatch.*,r. hatch
+.regex .*fleetw.*,r. j. fleetwood
+.regex .*kleinman.*,r. kleinman
+.regex .*kleinm.*,r. kleinman
+.regex .*barraz.*,r. o. barraza
+.regex .*sedillo.*,r. p. sedillo
+.regex ^r.*johnso.*,r. roy johnson
+.regex ^rau.*gutierr.*,raul gutierrez
+.regex .*raymon.*,raymond c. jackson
+.regex .*reid.*patri.*,reid and patrick
+.regex ^r.*spell.*|^spell.*,richard william spellenberg
+.regex .*^r. .*soreng$|^rob.*soreng$|^soreng.*|^rob soreng.*|^r. soreng.*|^r. soreng;.*|^rob j. soreng.*,robert john soreng
+.regex .*burck.*,robert burckhalter
+.regex .*king.*,robert m. king
+".regex ^robert s. cambell.*|^robert s. campbell,.*|^r.*cam.*|^campbell.*",robert s. campbell
+".regex .*ron k.*|^kass, ron.*",ron kass
+.regex ^r.*hartm.*,ronald l. hartman
+.regex ^r.*ward.*,russell g. ward
+.regex ^s.*chamb.*,s. chambliss and s. primer
+.regex  ^s.*anderson.*|^anderson.*s.*,s. e. anderson
+.regex ^s.*sanch.*|^sanche.*sm.*,s. m. sanchez
+.regex .*pedd.*,scott dick-peddie
+".regex ^s\\..*hatch$.*|.*steph.*hatch.*|^hatch, s.*.l..*|.*s.l. hatch.*|.*sl hatch.*|.*s. l. hatch.*|^stephan l. hatch$|.*hatch, sl.*",stephan l. hatch
+.regex .*steph.*c.*he.*,stephen c. helfert
+".regex ^o'kane, jr., steve.*|^steve l. o'kane, jr.*",steve l. o'kane
+.regex ^s.*steph.*,steve stephens
+".regex ^s.*a.*thompson.*|^thompson, s.a.*",sue a. thompson
+.regex ^s.*thomps.*|^thomps.*s.*,sue a. thompson
+.regex .*bennet.*,t. bennet
+.regex .*cockerel.*,theodore dru alison cockerell
+.regex ^t.*reev.*,t. reeves
+.regex .*adams.*t.*|^t.*adams.*,thomas p. adams
+.regex ^t. r. van devender.*|^t.r. van devender|^van devender.*|^thomas r. van devender.*,thomas roger van devender
+.regex ^smith.*v.*|^v.*smith.*,vernette smith
+.regex .*archer.*,w. a. archer
+.regex .*^w.*reed$,w. g. reed
+.regex ^w.*carr.*|^r.*carr.*,w. r. carr
+.regex ^w.*weck.*|^weck.*,w. weckesser
+.regex .*wan.da*,wanda mphinyane
+.regex ^w.*wagner.*,warren l. wagner
+.regex ^william.*we.*|^weber.*|^w.*weber.*,william a. weber
+.regex .*andrew.*c.*,william andrew archer
+.regex .*will.*h.*rei.*|^w.*reid.*,william h. reid
+.regex .*chapline.*,william r. chapline
+.regex ^worth.*|^r..*worth.*|^d..*worth.*,richard dane worthington
+.regex  ^o.*met.*,orrick baylor metcalfe
+.regex  ^p.*standley.*,paul carpenter standley

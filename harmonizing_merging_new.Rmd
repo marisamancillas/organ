@@ -11,16 +11,30 @@ output:
 ---
 
 # Introduction
-- background to project
-- background to the problem that would require this harmonizing
-- specific objectives
-- organization of this document
+
+## Background
+This script was developed to integrate plant species occurrence data across multiple herbaria for the Organ Mountains, New Mexico. I did this by querying 4 biodiversity repositories (which simultaneously query across herbaria), and 2 individual herbarium collections. I didn't access these data via an API, but the full citations for the data download are here:
+
+## Data Used
+- New Mexico State University Herbarium
+  - 
+- Consortia of Intermountain Regional Herbaria Network
+  - 
+- Global Biodiversity Information Facility
+  - GBIF.org (02 February 2021) GBIF Occurrence Download [link]https://doi.org/10.15468/dl.4cw65k
+- SEINet
+  - SEINet Portal Network. 2021. [link]http//:www.swbiodiversity.org/seinet/index.php. Accessed on February 02.
+- The Smithsonian
+  - 
+- Actos via University of Texas in El Paso Herbarium
+
+## Organization of this document
+In this script I repeat the same workflow for each data set with some modifications depending on particularities of the dataset. For example, the New Mexico State University Herbarium had two separate occurrence data sets for the Organ Mountains curated for different purposes; thus these two datasets had to be harmonized first before cleaning them
 
 ```{r set up, include = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
 path <- "/Users/abe/Desktop/organ_project/clean_harmonize/repo_herb_original_with_id"
             
-
 # packages
 library(arsenal)
 library(diffdf)
@@ -51,9 +65,8 @@ options(max.print = 10000)
 
 These functions should be uploaded to github
 ```{r functions}
-# housekeeping function: turn dataframe to charactor type, and lowercase, 
+# housekeeping function: transform to character data, lowercase strings,
 # then reduce all the spaces in between and on the edges of strings
-
 housekeeping<-function(df){
 df[] <- lapply(df, as.character) # all as character
 df <- df %>% mutate_if(is.character, str_to_lower) -> df # all lowercase
@@ -65,7 +78,7 @@ return(df)
 }
 
 
-# define str_squish_trim function: strim squish and string trim at same time
+# str_squish_trim function: strim squish and string trim at same time
 str_squish_trim<-function(df){
 df <- df %>%
   mutate_if(is.character, str_squish) %>% # trim repeated spaces in-between strings
@@ -160,7 +173,7 @@ my_mutate_distinct <- function(data, group_vars, summary_vars, ...) {
 
 ## Workflow Image and Schema Image
 ```{r workflow, echo = FALSE}
-# add this in
+
 ```
 
 # NMSU
@@ -180,7 +193,7 @@ table of records lost from each transformation
 Editing notes to self: 
 1) instead of using the index, it would be more readable to use all the column names
 2) instead of turning to lowercase later, I could do it at the begining but it would require retyping a bunch of stuff
-3) put all csv's to be read in at the begining (exept the big dataframes)
+3) put all csv's to be read in at the beginning (exept the big dataframes)
 ```{r NMSU herbaria}
 df <- read.csv("./repo_herb_original_tables/NMSU_herbaria_Dona_Ana_1.19.2022.csv", header = TRUE)
 

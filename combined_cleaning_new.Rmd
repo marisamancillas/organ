@@ -1,0 +1,534 @@
+---
+title: "combined_cleaning"
+author: "Marisa Mancillas"
+date: "5/30/2022"
+output: html_document
+---
+Objective: To clean records and harmonize between institution duplicates, and separate all data into a set of related tables.
+```{r set up, include = FALSE}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+```
+
+```{r functions, include = FALSE}
+# paste and ignore NA values
+paste_na <- function(..., sep = " ") {
+  L <- list(...)
+  L <- lapply(
+    L,
+    function(x) {
+      x[is.na(x)] <- ""
+      x
+    }
+  )
+  out <- gsub(
+    paste0("(^", sep, "|", sep, "$)"), "",
+    gsub(
+      paste0(sep, sep), sep,
+      do.call(paste, c(L, list(sep = sep)))
+    )
+  )
+  is.na(out) <- out == ""
+  return(out)
+}
+
+
+
+# paste distinct values while ignoring NA
+paste_distinct <- function(list){
+    list %>% unique %>% sort %>% paste_na(collapse = ",")
+}
+
+# define str_squish_trim function: strim squish and string trim at same time
+str_squish_trim<-function(df){
+df <- df %>%
+  mutate_if(is.character, str_squish) %>% # trim repeated spaces in-between strings
+  mutate_if(is.character, str_trim, side = "both") # trim empty spaces on string edges
+}
+
+```
+
+## Clean Dates
+In order to correctly identify duplicates across institutions it important that I do my best to clean the dates. 
+Since the collector number is not always entered, the collection date is critical for identifying unique colleciton events in cases where the collector number is "sn" or "NA".
+
+Here I am evaluating all columns that may have information about the time of collection. 
+First I'm separating all records that have an "NA" in the day, month, or year column. 
+There are about 50 entries for event assigned date and verbatim date. These dont add to the collection date information.
+
+event_assigned_date has mostly erroneous dates that dont match any other information. It looks like sometimes it means the date that someone assigned a date, and sometimes it means the date someone determined based on the label or supporting information. 
+I wont be using verbatim date or assingned date to date cleaning. 
+
+From this somewhat more complete set of collection dates, I will parse the dates into year month day and manually review for errors, making sure that old records arent automatically assigned to a newer century. 
+
+1) Remove records with no time information. Some of these seem to have time information burried in other columns but for my purposes its not worth the time
+
+2)
+```{r regex cleaning and filtering}
+df <- read.csv("all_six_institutions_combined_11_25_22.csv", header = TRUE)
+
+# remove records with no time information.
+df$collection_date <- gsub("x", NA, df$collection_date)
+df$collection_date <- gsub("^no d.*", NA, df$collection_date)
+
+# clean basis_of_record categories
+df$basis_of_record <- gsub("^h.*|^o.*", "human_observation", df$basis_of_record)
+df$basis_of_record <- gsub("^l.*", "living_specimen", df$basis_of_record)
+df$basis_of_record <- df$basis_of_record %>% replace_na('unknown')
+# after looking through the records, most which were NA or unkown were 
+# collected by known botanists so I'm assigning them as being physical specimens
+df$basis_of_record <- gsub("^p.*|^u.*", "physical_specimen", df$basis_of_record)
+
+# na string with NA for collecor name
+df$clean_collector <- gsub("^na$", NA, df$clean_collector)
+
+# remove records with no collector name (both legacy and clean collector)
+no_collector <- df %>% 
+  filter(is.na(clean_collector)) %>% 
+  dplyr::select(myid, year, month, day, clean_collector, 
+                legacy_collector, everything())
+
+# remove alphabetical and special charectors from colector number
+df$colnumber <- gsub("[::a-z::]|.*-.*|[[:punct:]]|[-|=|\\+]","", df$colnumber)
+df$colnumber <-  gsub("(.*),.*", "\\1", df$colnumber)
+df <- str_squish_trim(df)
+df[df==""] <- NA
+
+# fix missing taxon
+df$taxon <- ifelse(grepl("coih12842", df$myid), 
+       "Poa bigelovii", df$taxon)
+
+# remove authorship in taxon (this creates problems when identifying duplicates)
+df$taxon <-  gsub("\\(.*", "\\1", df$taxon)
+
+# remove unneccessary punctuation in location (creates problems when
+# identifying duplicates)
+df$location <-  gsub("[[:punct:]]", "", df$location) # punctuation in location
+df <- str_squish_trim(df)
+
+# remove problem records, blank taxa, blank collector, and coalesce location
+df <- df %>% 
+  filter(!myid =="nmsublm2324" | !myid == "smith452") %>% 
+  filter(!is.na(clean_collector)) %>% 
+  filter(!is.na(taxon)) %>% 
+  mutate(location = coalesce(location, location.1)) %>% 
+  dplyr::select(-c(location.1))
+
+# remove records with no time information
+no_time <- df %>% 
+  filter_at(vars(day,month,year,collection_date), all_vars(is.na(.)))
+
+# anti join to get all the df rows not matching the unique id for the no_time records
+df <- anti_join(df, no_time, by = "myid")
+```
+
+```{r mannual date cleaning}
+# take out rows WITHOUT values in one or more date columns (day month year)
+pr <- df %>% 
+  filter_at(vars(day,month,year),any_vars(is.na(.))) %>% # filter for NA in day, month, year column
+  dplyr::select(year, month, day, collection_date, myid, clean_collector)# select relevant columns 
+
+# take out rows WITH values in day month year 
+no_pr <- df %>% 
+  anti_join(pr, by = "myid") %>% 
+  dplyr::select(year, month, day, collection_date, myid, clean_collector)
+
+nrow(pr) + nrow(no_pr)
+
+# manually clean dates with strange formatting
+pr$collection_date <- gsub("\\(.*\\)", "", pr$collection_date)
+pr <- str_squish_trim(pr)
+pr$collection_date <- gsub("-00-00$", "", pr$collection_date) 
+pr$collection_date <- gsub("-00$", "", pr$collection_date) 
+pr$collection_date <- gsub(".*\\?\\.*", "", pr$collection_date)
+pr$collection_date <- gsub("t0.*", "", pr$collection_date)
+pr <- str_squish_trim(pr)
+
+# parse dates that contain specified formats
+pr$date_parsed <- parse_date_time2(pr$collection_date, 
+                                  orders = c('dmy', 'BY', 'db', 'dby', 'Y', 
+                                             'by', 'dmy', 'Ymd', 'mdy', 'BdY',
+                                             'Ym', 'dBY', 'b'),
+                                  cutoff_2000 = 20)
+
+# for the parsed dates, modify year, month, day to reflect that
+pr_1 <- pr %>%
+  filter(!is.na(date_parsed)) %>% 
+  mutate(year = lubridate::year(date_parsed), 
+         month = lubridate::month(date_parsed), 
+         day = lubridate::day(date_parsed)) %>% 
+  dplyr::select(-c(date_parsed))
+
+# get rid of this column
+pr <- pr %>% 
+  dplyr::select(-c(date_parsed))
+
+# bring back the records which were na in date parsed but had year information
+pr_2 <- anti_join(pr, pr_1, by="myid")
+# join with the dates with "no issues" this way I can correct erroneous dates here if there are any
+dates <- rbind(pr_1, pr_2, no_pr)
+
+keep(dates, df, str_squish_trim, no_collector, paste_distinct, paste_na, sure = TRUE)
+```
+
+For this step I need to identify the old collectors
+1) remove croudsourced data
+2) match collectors to ones I know are old
+```{r fix century errors}
+# get basis of record
+n <- df %>% dplyr::select(myid, basis_of_record)
+
+# join with dates
+dates <- left_join(n, dates, by = "myid")
+
+# specimen records
+spe <- dates %>% filter(basis_of_record != "human_observation")
+
+# collector names
+co <- unique(sort(spe$clean_collector))
+```
+
+I can come back here and make the old collector name thing better
+```{r use nmsu to make old collector list}
+
+# bring in nmsu dataset and use the names and dates to make list of old collectors
+nmsu <- read.csv("./repo_herb_original_tables/NMSU_herbaria_Dona_Ana_1.19.2022.csv", header = TRUE)
+
+nm <- nmsu %>% 
+  dplyr:::select(matches("Year|Collector1")) %>% 
+  filter(CollectingStartDateYear <= 1950)
+
+nm$name <- paste(nm$name, nm$Collector1FirstName, nm$Collector1MiddleName, 
+                 nm$Collector1LastName, sep = " ")
+old <- unique(nm$name)
+old <- as.data.frame(old)
+old <- str_squish_trim(old)
+old <- old %>% mutate_if(is.character, str_to_lower) -> old
+old <- old %>% 
+  add_row(old = "charles wright") %>% 
+  add_row(old = "a. s. hitchcock") %>% 
+  add_row(old = "charles c. parry")
+o <- as.vector(old$old)
+
+# extract strings that match the old collector list
+spe$old <- str_extract(spe$clean_collector, paste(o, collapse="|")) 
+
+# filter problem records for ones that are old
+oldcollectors <- spe %>% 
+  filter(!is.na(old)) %>% 
+  dplyr::select(old, clean_collector, everything())
+
+# take out the newer records
+newcollectors <- spe %>% 
+  filter(is.na(old))
+
+# make sure its still adding up
+nrow(newcollectors) + nrow(oldcollectors)
+# fix century 2000 - 1900
+oldcollectors$year <- gsub("^20", "19", oldcollectors$year)
+# fix century 1900 - 1800
+oldcollectors$year <- gsub("^.{1}[9][9]", "189", oldcollectors$year)
+# fix century 1900 - 1800
+oldcollectors$year <- gsub("^.{1}[9][8]", "188", oldcollectors$year)
+# fix century 0000
+oldcollectors$year <- gsub("^0000", "1900", oldcollectors$year)
+# fix partialdates
+oldcollectors$year <- gsub("^53$", "1953", oldcollectors$year)
+# fix partialdates
+oldcollectors$year <- gsub("^0$", "1900", oldcollectors$year)
+# fix century 1900 - 1800
+oldcollectors$year <- ifelse(grepl("elmer ottis wooton", 
+                                   oldcollectors$clean_collector), 
+                             gsub("^.{1}[9][7]", "187", oldcollectors$year), 
+                             oldcollectors$year)
+
+# fix century 1900 - 1800
+oldcollectors$year <- ifelse(grepl("elmer ottis wooton", 
+                                   oldcollectors$clean_collector), 
+                             gsub("^.{1}[9][5]", "190", oldcollectors$year), 
+                             oldcollectors$year)
+```
+
+seems like these two are errors not elmer ottis wooton -> Nephi Duane Atwood
+seinet13724
+coih19082
+[https://intermountainbiota.org/portal/collections/individual/index.php?occid=24737795]
+[http://sweetgum.nybg.org/images3/2637/726/03209026.jpg]
+
+```{r new collectors and bind}
+sort(unique(newcollectors$year))
+newcollectors$year <- ifelse(grepl("nmsublm2597", newcollectors$myid), 
+       gsub("0", "2000", newcollectors$year), newcollectors$year)
+
+# I could look these 6 records up by accession number to resolve the date issue
+problem_years <- newcollectors %>% 
+  filter(year == "0")
+
+# for now I'm dropping them
+newcollectors <- newcollectors %>% 
+  filter(year != "0")
+
+# day or month 0 shouldnt exist - replace with NA
+newcollectors$day <- gsub("^0$", NA, newcollectors$day)
+newcollectors$month <- gsub("^0$", NA, newcollectors$month)
+
+newcollectors <- newcollectors %>% dplyr::select(-c(old))
+oldcollectors <- oldcollectors %>% dplyr::select(-c(old))
+
+# observation records
+obs <- dates %>% filter(basis_of_record == "human_observation")
+
+dates_fixed <- rbind(newcollectors, oldcollectors, obs)
+
+dates_fixed <- dates_fixed %>% dplyr::select(-c(collection_date))
+
+keep(dates_fixed, df, problem_years, str_squish_trim,
+     paste_distinct, paste_na,no_collector, sure = TRUE)
+```
+
+# put together duplicate data table / bring back the dates
+```{r prepare dupe columns}
+
+# no collector number
+no_colnumber <- df %>% filter(is.na(colnumber))
+
+# there are some locations in municipality move them for blank NA's
+df <- df %>% 
+  mutate(location = coalesce(location, municipality))
+
+# no location
+loo <- df %>% filter(is.na(location)) %>% 
+  dplyr::select(location, everything())
+
+# join dates_fixed with columns needed for dupe identification (leave the rest to join at the end)
+df <- df %>% 
+  dplyr::select(-c(basis_of_record, year, month, day, clean_collector))
+names(dates_fixed)
+
+df <- left_join(dates_fixed, df, by = "myid")
+
+# It looks like human observations aren't going to have the same duplicate
+# behavior because people are much more likely to make an observation of 
+# the same species at the same time / day 
+# I'm removing them from the duplicate cleaning
+# also after removing the human observations there are only 8 records with no 
+# locality information so I'm going to kick these out and do them manually
+d_df <- df %>% 
+  filter(basis_of_record != "human_observation") %>% 
+  filter(!is.na(location))
+
+```
+
+I'm not sure if I should even use location for dupes
+Try with and without
+
+name, day, month, year and taxon shoule be pretty good???
+```{r get dupes}
+
+# get duplicates
+d_df <- d_df %>% 
+  get_dupes(clean_collector, taxon, month, day, year, location) %>% 
+  group_by(clean_collector, taxon, month, day, year, location) %>% 
+  mutate(between_inst_dupe_id = cur_group_id()) %>% 
+  group_by(between_inst_dupe_id) %>% 
+  mutate(loc_count = n_distinct(latitude, na.rm = TRUE)) %>% 
+  dplyr::select(dupe_count, between_inst_dupe_id, loc_count, taxon, location, 
+                latitude, longitude, everything())
+
+# dupe prefix id
+d_df$between_inst_dupe_id <- paste0('bi_', d_df$between_inst_dupe_id)
+
+# Create table tracking duplication
+dupe_table <- d_df %>% 
+  dplyr::select(between_inst_dupe_id, myid, dupe_count, institution_code)
+
+write_excel_csv(dupe_table, "between_institutions_duplicates.csv")
+
+# For records that are either NA in lat long, or have only one distinct lat long
+loc_0_1 <- d_df %>% 
+  group_by(between_inst_dupe_id) %>%
+  filter(loc_count <= 1)%>%
+  summarize((across(.fns = paste_distinct)))
+
+```
+
+```{r dupes more than one georeference}
+# For records that have more than one distinct lat long
+more_than_one <- d_df %>% 
+  group_by(between_inst_dupe_id) %>%
+  filter(loc_count > 1) %>% 
+  dplyr::select(-c(elev_in_m,elevation_accuracy,geodetic_datum, 
+                   georeference_notes,georeference_protocol,georeference_source,
+                georeference_verification_status,latitude,longitude,
+                max_elev_in_m, maximum_elevation,min_elev_in_m,minimum_elevation, 
+                orig_elev_units, orig_lat_long_units,verbatim_coordinates, 
+                coordinate_precision, maxerrordistance,
+                coordinateuncertaintyinmeters, 
+                og_calculatedlongitudeindecimalminutesfromtrs,
+                og_calculatedlongitudeindecimalminutesfromutm,
+                post_factum_uncertainty, distance_units, calc_elevation))
+
+# paste distinct for these columns 
+more_than_one <- more_than_one %>% 
+  group_by(between_inst_dupe_id) %>%
+  summarize((across(.fns = paste_distinct)))
+
+# for the duplicates with more than one location their to keep their georef. information
+subgeo <- d_df %>% 
+  group_by(between_inst_dupe_id) %>%
+  filter(loc_count > 1) %>%
+  dplyr::select(elev_in_m,elevation_accuracy,geodetic_datum, 
+                   georeference_notes,georeference_protocol,georeference_source,
+                georeference_verification_status,latitude,longitude,
+                max_elev_in_m, maximum_elevation,min_elev_in_m,minimum_elevation, 
+                orig_elev_units, orig_lat_long_units,verbatim_coordinates, 
+                coordinate_precision, maxerrordistance,
+                coordinateuncertaintyinmeters, 
+                og_calculatedlongitudeindecimalminutesfromtrs,
+                og_calculatedlongitudeindecimalminutesfromutm,
+                post_factum_uncertainty, distance_units, calc_elevation)
+
+subgeo <- subgeo %>%
+  filter(!is.na(latitude))
+
+# prioritize high confidence georeference, verified
+subgeo_1 <- subgeo %>%
+  group_by(between_inst_dupe_id) %>% 
+  filter(str_detect(georeference_verification_status, ".*high.*"))%>% 
+  arrange(rowSums(is.na(.))) %>% # sort rows by number of NAs
+  distinct(between_inst_dupe_id, .keep_all = TRUE)
+
+# take out the rows that are not high georeference verification
+subgeo_2 <- anti_join(subgeo, subgeo_1, by="between_inst_dupe_id")
+
+# prioritize records with least amount of NA values in georeference protocol, and sources
+subgeo_3 <- subgeo_2 %>%
+  group_by(between_inst_dupe_id) %>% 
+  arrange(across(starts_with("georeference_protocol|georeference_source")))%>% 
+  distinct(between_inst_dupe_id, .keep_all = TRUE) 
+
+high_georef <- rbind(subgeo_3, subgeo_1)
+
+loc_more_than_one_merge <- merge(high_georef, more_than_one, by = c("between_inst_dupe_id"))
+
+dfdupe_merge <- rbind(loc_more_than_one_merge, loc_0_1)
+
+nrow(dfdupe_merge) / nrow(d_df) # 46% duplication reduced
+```
+
+
+```{r join}
+df_not_dupe <- anti_join(df, d_df, by="myid")
+
+col <- compare_df_cols(df_not_dupe, dfdupe_merge)
+
+df_not_dupe$loc_count <- "NA"
+df_not_dupe$dupe_count <- "NA"
+df_not_dupe$between_inst_dupe_id <- "NA"
+
+df_harmonized <- rbind(df_not_dupe,dfdupe_merge)
+
+head(unique(df_harmonized$between_inst_dupe_id), n = 50)
+
+nrow(df_harmonized)/nrow(df)# 67%
+
+# replace concatenated myid columns with an NA 
+df_harmonized$myid <- gsub(".*,.*", NA, df_harmonized$myid)
+
+# replace NA with between institution dupe id
+df_harmonized <- df_harmonized %>% 
+  mutate(myid = coalesce(myid, between_inst_dupe_id))
+
+keep(df, df_harmonized, d_df, dupe_table, no_collector, no_colnumber, 
+     str_squish_trim, paste_distinct, paste_na, sure = TRUE)
+
+```
+
+```{r quality controll}
+# Looking at how many duplicates in just collector taxon and year
+# it seems like I will have to look through this manually to be sure
+lk <- df_harmonized %>% 
+  get_dupes(clean_collector, year, taxon) %>%
+  group_by(clean_collector, year, taxon) %>%
+  mutate(id = cur_group_id()) %>% 
+  group_by(id) %>% 
+  mutate(loc_count = n_distinct(latitude, na.rm = TRUE)) %>% 
+  filter(basis_of_record !="human_observation") %>% 
+  dplyr::select(myid, id, dupe_count, loc_count, 
+                clean_collector, taxon, day, month, year, location, 
+                latitude, longitude, colnumber)
+
+
+# These duplicates show basically errors of swapping or not having 
+# correct month, and date
+lk2 <- df_harmonized %>% 
+  get_dupes(clean_collector, year, taxon, location) %>%
+  group_by(clean_collector, year, taxon, location) %>%
+  mutate(id = cur_group_id()) %>% 
+  group_by(id) %>% 
+  mutate(loc_count = n_distinct(latitude, na.rm = TRUE)) %>% 
+  filter(basis_of_record !="human_observation") %>% 
+  dplyr::select(myid, id, dupe_count, loc_count, 
+                clean_collector, taxon, day, month, year, location, 
+                latitude, longitude, colnumber)
+
+```
+
+Subset data into managable tables. Any columns not chosen were temporary scratch columns for identifying duplicates or they were determined to be unimportant.
+
+```{r subset data into managable tables}
+# time data
+time <- df_harmonized %>% 
+  dplyr::select(myid, day, month, year, collection_date, verbatim_date)
+
+write_excel_csv(time, "herb_obs_time.csv")
+
+# locality
+locality <- df_harmonized %>% 
+  dplyr::select(myid, latitude, longitude, og_calculatedlongitudeindecimalminutesfromtrs,
+  og_calculatedlongitudeindecimalminutesfromutm, orig_elev_units,                         
+  orig_lat_long_units, post_factum_uncertainty,verbatim_coordinates, verbatim_locality,
+  verbatim_elevation, max_elev_in_m, maxerrordistance, maximum_elevation, min_elev_in_m,
+  minimum_elevation, geodetic_datum, georeference_notes, georeference_protocol,
+  georeference_source, georeference_verification_status, distance_units, elev_in_m,
+  elevation_accuracy, coordinate_precision, coordinateuncertaintyinmeters, calc_elevation)
+
+write_excel_csv(locality, "herb_obs_locality.csv")
+
+# taxonomy
+taxonomy <- df_harmonized %>% 
+  dplyr::select(myid, verbatim_sci_name, verbatim_sci_name_with_auth, 
+                sci_name_with_auth, species, specific_epithet, subspecies,
+                taxon, family, genus, infraspecific_epithet)
+
+write_excel_csv(taxonomy, "herb_obs_taxonomy.csv")
+
+# qualitative
+bioindicators <- df_harmonized %>% 
+  dplyr::select(myid, abiotic_ecological, abundance, biotic_association, 
+                habitat, inflower, infruit, life_history, morphological, notes, 
+                phenology, location, misc_notes, locality_security)
+
+write_excel_csv(bioindicators, "herb_obs_bioindicators.csv")
+
+# basic analysis set
+basic_analysis <- df_harmonized %>% 
+  dplyr::select(myid, basis_of_record, clean_collector, day, month, year, 
+                taxon, latitude, longitude, location)
+
+write_excel_csv(basic_analysis, "herb_obs_basic_analysis.csv")
+
+# record metadata
+record_metadata <- df_harmonized %>% 
+  dplyr::select(myid, accessionnumber, colnumber, event_assigned_date, 
+                id_history, institution_code, legacy_collector, project,
+                verbatim_collector, weblink, query_word, other_catalog_numbers,
+                last_determined_by...last_det_date, date_identified, catalog_number,
+                basis_of_record)
+
+write_excel_csv(record_metadata, "herb_obs_record_metadata.csv")
+```
+
+
+

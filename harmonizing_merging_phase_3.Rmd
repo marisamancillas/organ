@@ -1,0 +1,89 @@
+---
+title: "Update Taxonomy"
+author: "Marisa Mancillas"
+date: "12/08/2022"
+output: html_document
+---
+
+Objective: In this script, I join the herb_obs_basic_analysis.csv with a taxonomy table produced in a separate workflow where names were processed.  
+
+```{r set up, warning = FALSE, message = FALSE}
+# packages
+library(tidyverse)
+library(lubridate)
+library(matchmaker)
+library(taxize)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r data pre processing}
+# the product of my workflow, Sara's workflow, and some manual changes
+tax_cleaned <- read.csv("taxonomy_table.csv", header = TRUE)
+
+# replace blanks with NA 
+tax_cleaned <- tax_cleaned %>% mutate_all(na_if,"")
+
+# the raw data after harmonizing merging and cleaning
+df <- read.csv("herb_obs_basic_analysis.csv", header = TRUE)
+
+# Some string cleaning
+# remove the " x "
+df$taxon <- gsub(" x ", " ", df$taxon)
+
+# remove the "[" in one name
+df$taxon <- gsub("\\[\\.*", "", df$taxon)
+
+# parse taxon using GBIF name parser
+df$taxon <- gbif_parse(df$taxon)
+
+# fix the embedded dataframe
+df <- do.call("data.frame", df) 
+
+# select and rename 
+df <- df %>% 
+  dplyr::select(myid,basis_of_record, clean_collector, day, month, year, taxon.canonicalname) %>% 
+  rename(submitted_name = taxon.canonicalname)
+
+# This is the step where I'm loosing 844 records that do not have a match
+# The 844 rejected records are made up by 237 names. I looked up each name in Tropicos, 
+# and determined that most were Lichen, or bacteria. These records were rejected.
+df_tax_joined <- left_join(df, tax_cleaned, by = "submitted_name")
+
+# select relevant columns
+df_tax_joined <- df_tax_joined %>% 
+  dplyr::select(c(myid,basis_of_record, clean_collector, day, month, year, tax_id, resolved_taxon,scientificname, genus, specificepithet, infraspecificepithet, family, order, phylum, rank, canonicalname, species))
+```
+
+```{r explore the data}
+# those that are in the basic analysis dataframe but not in the clean taxa dataframe
+anti <- anti_join(df, tax_cleaned, by = "submitted_name") %>% view()
+
+anti_id <- as.data.frame(anti$myid)
+anti_id <- anti_id %>% rename(myid = `anti$myid`)
+
+# bring original file back in
+df <- read.csv("herb_obs_basic_analysis.csv", header = TRUE)%>% 
+  dplyr::select(myid,basis_of_record, clean_collector, 
+                day, month, year, taxon) %>% 
+  rename(submitted_name = taxon)
+
+# do a variety of anti-joins to look at discrepancies
+anti_df <- left_join(anti_id, df, by = "myid")
+anti_join <- left_join(anti_df, tax_cleaned, by = "submitted_name")
+anti_join_1 <- anti_join %>% drop_na(resolved_taxon)
+anti_join_1 <- anti_join_1 %>% mutate_all(na_if,"")
+anti_join_1 <- anti_join_1 %>% dplyr::select(-c(submitted_name))
+
+# rejected
+final_table <- rbind(anti_join_1, df_tax_joined)
+
+# remove repeating NA's
+final_table$species <- gsub("NA",NA, final_table$species)
+
+final_table <- final_table %>%
+  mutate(collection_date_ymd = make_date(year, month, day))
+
+dfna <- final_table %>% filter(is.na(resolved_taxon))
+
+write.csv(final_table, "herb_obs_tax_updt_analysis.csv", row.names = FALSE)
+```
